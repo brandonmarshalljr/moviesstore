@@ -8,6 +8,12 @@ class Movie(models.Model):
     price = models.IntegerField()
     description = models.TextField()
     image = models.ImageField(upload_to='movie_images/')
+    amount_left = models.PositiveIntegerField(
+        null=True, 
+        blank=True,
+        help_text="Number of copies available (optional)",
+        default=None
+    )
     def __str__(self):
         return str(self.id) + ' - ' + self.name
     
@@ -19,5 +25,6 @@ class Review(models.Model):
         on_delete=models.CASCADE)
     user = models.ForeignKey(User,
         on_delete=models.CASCADE)
+        
     def __str__(self):
         return str(self.id) + ' - ' + self.movie.name

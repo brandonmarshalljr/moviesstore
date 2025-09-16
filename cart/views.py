@@ -20,12 +20,19 @@ def purchase(request):
     order.total = cart_total
     order.save()
     for movie in movies_in_cart:
+        quantity = int(cart[str(movie.id)])
+        # Decrement amount_left
+        if movie.amount_left is not None:
+            movie.amount_left = max(0, movie.amount_left - quantity)
+            movie.save()
+        
         item = Item()
         item.movie = movie
         item.price = movie.price
         item.order = order
-        item.quantity = cart[str(movie.id)]
+        item.quantity = quantity
         item.save()
+    
     request.session['cart'] = {}
     template_data = {}
     template_data['title'] = 'Purchase confirmation'
