@@ -28,3 +28,33 @@ class Review(models.Model):
         
     def __str__(self):
         return str(self.id) + ' - ' + self.movie.name
+    
+class Petition(models.Model):
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    image = models.ImageField(upload_to='petitions/', blank=True, null=True)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_petitions')
+    created_at = models.DateTimeField(auto_now_add=True)
+    voters = models.ManyToManyField(User, through='PetitionVote', related_name='voted_petitions')
+    
+    def vote_count(self):
+        return self.petitionvote_set.count()
+    
+    def has_user_voted(self, user):
+        if not user.is_authenticated:
+            return False
+        return self.petitionvote_set.filter(user=user).exists()
+    
+    def __str__(self):
+        return self.title
+    
+    class Meta:
+        ordering = ['-created_at']
+
+class PetitionVote(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    petition = models.ForeignKey(Petition, on_delete=models.CASCADE)
+    voted_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('user', 'petition')

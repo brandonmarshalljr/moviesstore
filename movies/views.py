@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Movie, Review
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.db import IntegrityError
+from .models import Movie, Review, Petition, PetitionVote
 
 @login_required
 def delete_review(request, id, review_id):
@@ -61,3 +63,73 @@ def show(request, id):
     template_data['reviews'] = reviews
     return render(request, 'movies/show.html',
                   {'template_data': template_data})
+
+def petitions_index(request):
+    petitions = Petition.objects.all()
+    
+    # Add voting status for each petition if user is authenticated
+    if request.user.is_authenticated:
+        for petition in petitions:
+            petition.user_has_voted = petition.has_user_voted(request.user)
+    else:
+        for petition in petitions:
+            petition.user_has_voted = False
+    
+    template_data = {
+        'title': 'Movie Petitions',
+        'petitions': petitions
+    }
+    return render(request, 'movies/petitions_index.html', {'template_data': template_data})
+
+@login_required
+def petition_create(request):
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        description = request.POST.get('description')
+        image = request.FILES.get('image')
+        
+        if title and description:
+            petition = Petition(
+                title=title,
+                description=description,
+                image=image,
+                created_by=request.user
+            )
+            petition.save()
+            messages.success(request, 'Petition created successfully!')
+            return redirect('movies.petitions_index')
+        else:
+            messages.error(request, 'Please fill in all required fields.')
+    
+    template_data = {
+        'title': 'Create Movie Petition'
+    }
+    return render(request, 'movies/petition_create.html', {'template_data': template_data})
+
+@login_required
+def petition_vote(request, petition_id):
+    petition = get_object_or_404(Petition, id=petition_id)
+    
+    try:
+        # Check if user has already voted
+        existing_vote = PetitionVote.objects.filter(
+            user=request.user,
+            petition=petition
+        ).first()
+        
+        if existing_vote:
+            # User has voted, so remove the vote (unvote)
+            existing_vote.delete()
+            messages.success(request, 'Your vote has been removed!')
+        else:
+            # User hasn't voted, so add the vote
+            PetitionVote.objects.create(
+                user=request.user,
+                petition=petition
+            )
+            messages.success(request, 'Your vote has been recorded!')
+            
+    except IntegrityError:
+        messages.error(request, 'An error occurred while processing your vote.')
+    
+    return redirect('movies.petitions_index')
