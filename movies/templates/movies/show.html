@@ -30,6 +30,34 @@
             </div>
           </form>
         </p>
+        
+        <!-- User Rating Section -->
+        {% if user.is_authenticated %}
+        <div class="card mb-4">
+          <div class="card-body">
+            <h5 class="card-title">Rate this movie</h5>
+            <form method="post" action="{% url 'movies.rate' template_data.movie.id %}" class="d-inline">
+              {% csrf_token %}
+              <div class="d-flex gap-2 align-items-center">
+                <button type="submit" name="rating" value="up" 
+                        class="btn {% if template_data.user_rating == 'up' %}btn-success{% else %}btn-outline-success{% endif %}">
+                  <i class="fas fa-thumbs-up"></i> 
+                  {% if template_data.user_rating == 'up' %}You liked this{% else %}Like{% endif %}
+                </button>
+                <button type="submit" name="rating" value="down" 
+                        class="btn {% if template_data.user_rating == 'down' %}btn-danger{% else %}btn-outline-danger{% endif %}">
+                  <i class="fas fa-thumbs-down"></i> 
+                  {% if template_data.user_rating == 'down' %}You disliked this{% else %}Dislike{% endif %}
+                </button>
+                {% if template_data.user_rating %}
+                <small class="text-muted ms-2">Click again to remove your rating</small>
+                {% endif %}
+              </div>
+            </form>
+          </div>
+        </div>
+        {% endif %}
+        
         <h2>Reviews</h2>
         <hr />
         <ul class="list-group">
@@ -85,6 +113,22 @@
       <div class="col-md-6 mx-auto mb-3 text-center">
         <img src="{{ template_data.movie.image.url }}"
           class="rounded img-card-400" />
+        
+        <!-- Average Rating Display -->
+        <div class="mt-3 p-3 bg-light rounded">
+          {% if template_data.movie.get_average_rating_percentage %}
+            <h5 class="mb-1">
+              <i class="fas fa-thumbs-up text-success"></i> 
+              {{ template_data.movie.get_average_rating_percentage }}%
+            </h5>
+            <small class="text-muted">
+              {{ template_data.movie.get_total_ratings_count }} rating{{ template_data.movie.get_total_ratings_count|pluralize }}
+            </small>
+          {% else %}
+            <h6 class="text-muted mb-1">No ratings yet</h6>
+            <small class="text-muted">Be the first to rate!</small>
+          {% endif %}
+        </div>
       </div>
     </div>
   </div>

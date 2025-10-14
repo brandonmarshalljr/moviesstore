@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import IntegrityError
-from .models import Movie, Review, Petition, PetitionVote
+from .models import Movie, Review, Petition, PetitionVote, Rating
 
 @login_required
 def delete_review(request, id, review_id):
@@ -57,12 +57,50 @@ def index(request):
 def show(request, id):
     movie = Movie.objects.get(id=id)
     reviews = Review.objects.filter(movie=movie)
+    
+    # Get user's rating if authenticated
+    user_rating = None
+    if request.user.is_authenticated:
+        user_rating = movie.get_user_rating(request.user)
+    
     template_data = {}
     template_data['title'] = movie.name
     template_data['movie'] = movie
     template_data['reviews'] = reviews
+    template_data['user_rating'] = user_rating
     return render(request, 'movies/show.html',
                   {'template_data': template_data})
+
+@login_required
+def rate_movie(request, id):
+    if request.method == 'POST':
+        movie = get_object_or_404(Movie, id=id)
+        rating_value = request.POST.get('rating')
+        
+        if rating_value in ['up', 'down']:
+            # Check if user has already rated this movie
+            existing_rating = Rating.objects.filter(user=request.user, movie=movie).first()
+            
+            if existing_rating:
+                if existing_rating.rating == rating_value:
+                    # Same rating clicked, remove it
+                    existing_rating.delete()
+                    messages.success(request, 'Your rating has been removed!')
+                else:
+                    # Different rating clicked, update it
+                    existing_rating.rating = rating_value
+                    existing_rating.save()
+                    rating_text = 'thumbs up' if rating_value == 'up' else 'thumbs down'
+                    messages.success(request, f'Your rating has been updated to {rating_text}!')
+            else:
+                # New rating
+                Rating.objects.create(user=request.user, movie=movie, rating=rating_value)
+                rating_text = 'thumbs up' if rating_value == 'up' else 'thumbs down'
+                messages.success(request, f'You gave this movie a {rating_text}!')
+        else:
+            messages.error(request, 'Invalid rating value.')
+    
+    return redirect('movies.show', id=id)
 
 def petitions_index(request):
     petitions = Petition.objects.all()

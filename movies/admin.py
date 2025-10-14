@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Movie, Review, Petition, PetitionVote
+from .models import Movie, Review, Petition, PetitionVote, Rating
 
 class MovieAdmin(admin.ModelAdmin):
     ordering = ['name']
@@ -21,7 +21,13 @@ class PetitionAdmin(admin.ModelAdmin):
         return obj.vote_count()
     vote_count.short_description = 'Votes'
 
+class RatingAdmin(admin.ModelAdmin):
+    list_display = ['user', 'movie', 'rating', 'created_at']
+    list_filter = ['rating', 'created_at']
+    search_fields = ['user__username', 'movie__name']
+
 admin.site.register(Movie, MovieAdmin)
 admin.site.register(Review)
 admin.site.register(Petition, PetitionAdmin)
 admin.site.register(PetitionVote)
+admin.site.register(Rating, RatingAdmin)
