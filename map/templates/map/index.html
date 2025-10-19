@@ -129,7 +129,7 @@
 
     marker.on('click', async () => {
       try {
-        const url = "{% url 'map.top_by_state' %}" + "?state=" + encodeURIComponent(s.code);
+        const url = "{% url 'map.top_by_state' %}" + "?state=" + encodeURIComponent(s.name);
         const res = await fetch(url);
         if (!res.ok) {
           marker.setPopupContent(`<strong>${s.name} (${s.code})</strong><br/>HTTP ${res.status} loading data.`);
@@ -140,7 +140,7 @@
         let body;
         if (data.top) {
           const note = data.fallback ? `<br><small class="text-muted">(Global top, no data for this state)</small>` : "";
-          body = `<em>Top movie</em><br>${data.top.name} — ${data.top.count}${note}`;
+          body = `<em>Top movie</em><br>${data.top} — ${data.count}${note} sales`;
         } else {
           body = "No data yet.";
         }

@@ -10,16 +10,16 @@ def index(request):
 
 @require_GET
 def top_movies_by_state(request):
-    click_state = (request.GET.get("state") or  "").upper().strip()
+    click_state = (request.GET.get("state") or  "")#.strip()
     
     purchases = Item.objects.filter(state=click_state)
     totals = {}
     for item in purchases:
-        if item.movie not in totals:
-            totals[item.movie] = 0
-        totals[item.movie] += item.quantity
+        if item.movie.name not in totals:
+            totals[item.movie.name] = 0
+        totals[item.movie.name] += item.quantity
     maxkey = ("N/A",0)
     for movie, count in totals.items():
         if count > maxkey[1]:
             maxkey = (movie, count)
-    return JsonResponse({'state': click_state, "top": maxkey[0], 'fallback':False})
+    return JsonResponse({'state': click_state, "top": maxkey[0], "count":maxkey[1], 'fallback':False})
