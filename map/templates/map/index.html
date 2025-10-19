@@ -118,10 +118,41 @@
     {code:'WY', name:'Wyoming',      lat:42.755966, lng:-107.30249},
   ];
  
-  stateCenters.forEach(s => {
+  /*stateCenters.forEach(s => {
     L.marker([s.lat, s.lng])
       .addTo(map)
       .bindPopup(`<strong>${s.name} (${s.code})</strong><br/>Placeholder: trending info coming soon.`);
+  });*/
+  stateCenters.forEach((s) => {
+    const marker = L.marker([s.lat, s.lng]).addTo(map);
+    marker.bindPopup(`<strong>${s.name} (${s.code})</strong><br/>Loading…`);
+
+    marker.on('click', async () => {
+      try {
+        const url = "{% url 'map.top_by_state' %}" + "?state=" + encodeURIComponent(s.code);
+        const res = await fetch(url);
+        if (!res.ok) {
+          marker.setPopupContent(`<strong>${s.name} (${s.code})</strong><br/>HTTP ${res.status} loading data.`);
+          return;
+        }
+        const data = await res.json();
+
+        let body;
+        if (data.top) {
+          const note = data.fallback ? `<br><small class="text-muted">(Global top, no data for this state)</small>` : "";
+          body = `<em>Top movie</em><br>${data.top.name} — ${data.top.count}${note}`;
+        } else {
+          body = "No data yet.";
+        }
+
+        marker.setPopupContent(`
+          <strong>${s.name} (${s.code})</strong><br/>
+          ${body}
+        `).openPopup();
+      } catch (e) {
+        marker.setPopupContent(`<strong>${s.name} (${s.code})</strong><br/>Network error.`);
+      }
+    });
   });
 </script>
 {% endblock content %}

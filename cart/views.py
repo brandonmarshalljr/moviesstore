@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404, redirect
 from movies.models import Movie
 from .utils import calculate_cart_total
 from .models import Order, Item
+from .forms import StateForm
 from django.contrib.auth.decorators import login_required
 
 @login_required
@@ -31,6 +32,7 @@ def purchase(request):
         item.price = movie.price
         item.order = order
         item.quantity = quantity
+        item.state = request.session.get('state', {})
         item.save()
     
     request.session['cart'] = {}
@@ -41,6 +43,10 @@ def purchase(request):
         {'template_data': template_data})
 
 def index(request):
+    if request.method == "POST":
+        form = StateForm(request.POST)
+        request.session['state'] = form['state'].data
+        return redirect('cart.purchase')
     cart_total = 0
     movies_in_cart = []
     cart = request.session.get('cart', {})
@@ -52,7 +58,8 @@ def index(request):
     template_data['title'] = 'Cart'
     template_data['movies_in_cart'] = movies_in_cart
     template_data['cart_total'] = cart_total
-    return render(request, 'cart/index.html', {'template_data': template_data})
+    form = StateForm()
+    return render(request, 'cart/index.html', {'template_data': template_data, 'form': form})
 
 def add(request, id):
     get_object_or_404(Movie, id=id)

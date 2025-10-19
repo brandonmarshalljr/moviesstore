@@ -38,9 +38,22 @@
         <a class="btn btn-outline-secondary mb-2"><b>Total
           to pay:</b> ${{ template_data.cart_total }}</a>
         {% if template_data.movies_in_cart|length > 0 %}
-        <a href="{% url 'cart.purchase' %}"
-          class="btn bg-dark text-white mb-2">Purchase
-        </a>
+        <form method="post" class="d-inline">
+          {% csrf_token %}
+            <select name="{{ form.state.name }}">
+                {% for choice in form.state.field.choices %}
+                    <option value="{{ choice.0 }}">{{ choice.1 }}</option>
+                {% endfor %}
+            </select>
+            <!--<select name="{{ form.choices.name }}">
+                {% for widget in form.choices.subwidgets %}
+                    {{ widget }}
+                {% endfor %}
+            </select>-->
+          
+          {% if form.state.errors %}<div class="text-danger">{{ form.state.errors }}</div>{% endif %}
+        <button class="btn bg-dark text-white mb-2" type="submit">Purchase</button>
+        </form>
         <a href="{% url 'cart.clear' %}">
           <button class="btn btn-danger mb-2">
             Remove all movies from Cart

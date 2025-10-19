@@ -25,6 +25,7 @@ class Item(models.Model):
     def __str__(self):
         return str(self.id) + ' - ' + self.movie.name
     STATES = [
+        ('Georgia','Georgia'),
         ('Alabama','Alabama'),
         ('Alaska','Alaska'),
         ('Arizona','Arizona'),
@@ -35,7 +36,6 @@ class Item(models.Model):
         ('Delaware','Delaware'),
         ('District of Columbia','District of Columbia'),
         ('Florida','Florida'),
-        ('Georgia','Georgia'),
         ('Hawaii','Hawaii'),
         ('Idaho','Idaho'),
         ('Illinois','Illinois'),
