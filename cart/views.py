@@ -25,7 +25,7 @@ def purchase(request):
         if movie.amount_left is not None:
             movie.amount_left = max(0, movie.amount_left - quantity)
             movie.save()
-        
+        #order.movie_data.add(movie)
         item = Item()
         item.movie = movie
         item.price = movie.price
